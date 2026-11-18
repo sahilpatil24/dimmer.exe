@@ -1,84 +1,71 @@
-# Dimmer for Windows (`dimmer.exe`) - Engineering Plan
+# Screen Dimmer for Windows (`dimmer.exe`) - Engineering Plan
 
 ## 1. Executive Summary
-A lightweight, high-performance display dimming application for Windows that allows dimming the screen below hardware limits using a transparent click-through layered window, warm color filtering (blue light cut), system tray controls, and global keyboard shortcuts.
+A native, high-performance tray application for Windows 10 and 11 that dims displays below standard hardware limits and filters blue light. Built with modern **C# / .NET 8 / WPF**, featuring layered click-through overlays, safety-capped brightness math, hardware panel brightness integration via WMI, global hotkeys, and single-instance tray lifecycle.
 
 ---
 
-## 2. Technical Stack
+## 2. Technical Stack & Architecture
 
-* **Core Options:**
-  1. **Flutter Desktop (Windows):** Native C++ runner, high-performance rendering, seamless system tray (`tray_manager`), native window sizing (`window_manager`), and cross-platform synergy with Android.
-  2. **Python / PySide6 + ctypes:** Standalone Win32 script packaged via PyInstaller into `dimmer.exe`.
-* **Key Win32 APIs:**
-  * `WS_EX_LAYERED (0x80000)`: Enables alpha blending and transparency.
-  * `WS_EX_TRANSPARENT (0x20)`: Enables click-through behavior (mouse input passes through to windows below).
-  * `WS_EX_TOOLWINDOW (0x80)`: Prevents the overlay from appearing in Alt-Tab or taskbar.
-  * `SetLayeredWindowAttributes`: Controls alpha (0–255) and color keying.
-  * `GetSystemMetrics(SM_CXVIRTUALSCREEN)` & `GetSystemMetrics(SM_CYVIRTUALSCREEN)`: Spans across multi-monitor setups.
-  * `RegisterHotKey`: Listens for global hotkeys when minimized.
-
----
-
-## 3. Five-Phase Implementation Roadmap
-
-```mermaid
-flowchart LR
-    P1["Phase 1\nWin32 Overlay Engine"] --> P2["Phase 2\nDimming & Color Tint"]
-    P2 --> P3["Phase 3\nSystem Tray & UI"]
-    P3 --> P4["Phase 4\nHotkeys & Multi-Screen"]
-    P4 --> P5["Phase 5\nRelease dimmer.exe"]
-```
-
-### Phase 1: Win32 Overlay Foundation
-* Create borderless, topmost, un-focusable window.
-* Set `WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW` styles.
-* Validate that clicks, typing, and mouse interactions pass completely through to underlying desktop software.
-
-### Phase 2: Dimming Engine & Color Temperature
-* Implement smooth alpha adjustment from 0% (off) to 95% (near total blackout).
-* Implement warm amber / orange color tinting matrix to filter high-frequency blue light.
-* Add presets:
-  * **Day:** 0% dim, no tint
-  * **Reading:** 25% dim, mild 3400K tint
-  * **Night:** 50% dim, warm 2700K tint
-  * **Eclipse:** 85% dim, deep 1900K amber tint
-
-### Phase 3: System Tray & UI
-* Tray icon in Windows notification area with context menu:
-  * Show/Hide controls
-  * Preset quick-select
-  * Toggle Dimmer On/Off
-  * Exit
-* Control popup with intuitive sliders for Dim Level and Color Temperature.
-* Settings persistence (JSON config saved in `%APPDATA%\Dimmer`).
-
-### Phase 4: Multi-Monitor & Hotkey Daemon
-* Dynamically query display bounds on display change (`WM_DISPLAYCHANGE`).
-* Cover all active monitors, accommodating different resolutions and DPI scaling.
-* Background hotkey listener:
-  * `Ctrl + Alt + Down`: Increase Dimming (5% step)
-  * `Ctrl + Alt + Up`: Decrease Dimming (5% step)
-  * `Ctrl + Alt + D`: Toggle Dimmer On/Off
-
-### Phase 5: Packaging & Release
-* Embed high-resolution `.ico` application icon.
-* Configure build pipeline to produce clean, single-file or portable `dimmer.exe`.
-* Test startup with Windows (`HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run`).
+* **Framework & Runtime:**
+  * **C# / .NET 8 / WPF** (`net8.0-windows` for App, `net8.0` for Core).
+  * Unit testing: **xUnit** (`ScreenDimmer.Core.Tests`).
+* **Solution Architecture:**
+  * `src/ScreenDimmer.Core` (clean logic, zero Windows/WPF dependencies):
+    * `Settings/`: `DimmerSettings` (immutable records, sanitization/clamping), `DimmerPresets`.
+    * `Rendering/`: `OverlayMath` (ARGB alpha compositing with hard opacity caps preventing total blackout).
+    * `Abstractions/`: `IOverlay`, `IPanelBrightness`, `IStartupRegistration`, `ISettingsStore`.
+    * `Controller/`: `DimmerController` (central state machine, debounced JSON persistence, coordinator).
+    * `Persistence/`: `JsonSettingsStore` (`%AppData%\ScreenDimmer\settings.json`).
+  * `src/ScreenDimmer.App` (WPF UI & Windows OS services):
+    * `Native/`: `NativeMethods` (`user32.dll` P/Invoke bindings).
+    * `Services/`:
+      * `OverlayWindow` & `OverlayManager`: Multi-monitor borderless transparent overlays (`WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW`).
+      * `PanelBrightnessService`: Laptop internal display backlight control via WMI (`root\WMI`, `WmiMonitorBrightnessMethods`) with automatic brightness restoration on exit.
+      * `StartupRegistration`: Windows startup registry entry (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`).
+      * `HotkeyService`: Global shortcut bindings via hidden message window (`RegisterHotKey`).
+    * `Tray/`: `TrayService` & `TrayIcons` (Windows notification area icon and context menu).
+    * `ViewModels/`: `MainViewModel`, `RelayCommand` (MVVM architecture).
+    * `Views/`: `Theme.xaml`, `MainWindow` (dark mode styling, gradient color temperature sliders).
+    * `AppHost.cs`: Composition root and lifecycle management.
+    * `App.xaml.cs`: Single-instance mutex and named event activation.
 
 ---
 
-## 4. Commit Plan
-```text
-feat(windows): initialize Windows project workspace and runner
-feat(windows): implement Win32 layered transparent window creation
-feat(windows): add click-through flag handling (WS_EX_TRANSPARENT)
-feat(windows): add alpha blending slider (0-95% opacity)
-feat(windows): implement warm color temperature tinting (blue light reduction)
-feat(windows): add system tray icon and minimize-to-tray lifecycle
-feat(windows): implement floating tray control menu with preset profiles
-feat(windows): add persistent configuration store in AppData
-feat(windows): implement multi-monitor virtual screen coverage
-feat(windows): register global hotkeys for brightness adjustment
-feat(windows): package standalone dimmer.exe binary with custom app icon
-```
+## 3. Key Win32 & OS Integration Features
+
+* **Click-Through Multi-Monitor Overlays:**
+  * Extended window styles `WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW` allow mouse clicks to pass straight through without stealing focus or appearing in Alt+Tab.
+  * Multi-monitor support automatically tracks display geometry changes (`SystemEvents.DisplaySettingsChanged`).
+* **Color Compositing & Blackout Prevention:**
+  * Dim level hard cap: 78% opacity.
+  * Tint level hard cap: 28% opacity.
+  * Combined maximum opacity is mathematically capped at ~84%, guaranteeing the screen remains visible and readable.
+* **WMI Panel Brightness Control:**
+  * Communicates with ACPI/WMI brightness methods for laptops.
+  * Runs on a background worker thread to prevent UI freezing.
+  * Captures initial hardware brightness and guarantees clean restoration on exit.
+* **Global Hotkeys:**
+  * `Ctrl + Alt + D`: Toggle dimmer on/off.
+  * `Ctrl + Alt + Up / Down`: Step dimming by ±5%.
+  * `Ctrl + Alt + Right / Left`: Step color temperature (warmer / cooler) by ±5%.
+
+---
+
+## 4. Incremental Implementation Roadmap
+
+1. **Repo Hygiene:** Configure `.gitignore` for .NET 8, WPF, and Windows artifacts.
+2. **Core Settings & Presets:** Implement settings models with immutable records, validation, and predefined presets.
+3. **Overlay Color Math:** Implement compositing mathematics for dimming + color tinting with safety caps.
+4. **Core Logic Unit Tests:** Comprehensive xUnit tests covering clamping, math formulas, and preset bounds.
+5. **Controller & Abstractions:** Decouple core logic behind service interfaces (`IOverlay`, `IPanelBrightness`, `ISettingsStore`, `IStartupRegistration`).
+6. **Controller Tests:** Verify controller behavior and state transitions using test fakes.
+7. **Settings Persistence:** Implement thread-safe JSON settings storage in `%AppData%`.
+8. **Multi-Monitor Click-Through Overlay:** WPF borderless layered windows with DPI awareness V2 and display change detection.
+9. **Hardware Brightness & Startup Registration:** WMI brightness service and registry startup registration.
+10. **System Tray & Global Hotkeys:** Notification tray menu, dynamic tray icon generation, and global hotkey service.
+11. **MVVM Layer:** Base ViewModel, RelayCommand, and MainViewModel data bindings.
+12. **Main Application Window:** Modern dark-themed WPF UI with gradient sliders and preset pickers.
+13. **Composition Root & Single Instance:** Wire all components in `AppHost`, with mutex-based single instance handling.
+14. **Solution Configuration:** Visual Studio `.sln` linking all project and test layers.
+15. **Documentation & Release:** Comprehensive documentation for setup, architecture, and usage.

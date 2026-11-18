@@ -46,11 +46,11 @@ flowchart TD
 
 | Dimension | Windows Desktop (`dimmer.exe`) | Android Mobile |
 | :--- | :--- | :--- |
-| **Primary Framework** | **Flutter Desktop (Windows)** | **Flutter Android** |
-| **Alternative** | Python (PySide6 / Win32 ctypes) | Native Android (Kotlin + Compose) |
-| **System APIs** | `user32.dll` (`WS_EX_LAYERED`, `WS_EX_TRANSPARENT`) | `WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY` |
-| **Background / Tray** | `tray_manager` / Win32 Shell_NotifyIcon | `android.app.Service` (Foreground) + `TileService` |
-| **Binary Output** | Standalone `dimmer.exe` (with runner assets) | Signed release `.apk` / `.aab` |
+| **Primary Framework** | **C# / .NET 8 / WPF** | **Flutter Android** |
+| **Alternative** | Win32 C++ / Python (PySide6) | Native Android (Kotlin + Compose) |
+| **System APIs** | `user32.dll` (`WS_EX_LAYERED`, `WS_EX_TRANSPARENT`), WMI | `WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY` |
+| **Background / Tray** | `NotifyIcon` (System.Windows.Forms) + Win32 Hotkeys | `android.app.Service` (Foreground) + `TileService` |
+| **Binary Output** | Standalone single-file `dimmer.exe` | Signed release `.apk` / `.aab` |
 
 ---
 
