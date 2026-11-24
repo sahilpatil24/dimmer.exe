@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C4C3D651-D3CA-40BA-9DA3-488E55CE589C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenDimmer.Core", "src\ScreenDimmer.Core\ScreenDimmer.Core.csproj", "{5A0A2F3D-8462-4782-9668-1CA2DC08630C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenDimmer.App", "src\ScreenDimmer.App\ScreenDimmer.App.csproj", "{FD2FBB66-7470-440B-9C7A-AEB74712FF2F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2CC5A95A-DE78-4C30-9525-B33000D6A7AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenDimmer.Core.Tests", "tests\ScreenDimmer.Core.Tests\ScreenDimmer.Core.Tests.csproj", "{39708916-A858-4E6B-921D-ECE42845C46C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A0A2F3D-8462-4782-9668-1CA2DC08630C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A0A2F3D-8462-4782-9668-1CA2DC08630C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A0A2F3D-8462-4782-9668-1CA2DC08630C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A0A2F3D-8462-4782-9668-1CA2DC08630C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD2FBB66-7470-440B-9C7A-AEB74712FF2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD2FBB66-7470-440B-9C7A-AEB74712FF2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD2FBB66-7470-440B-9C7A-AEB74712FF2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD2FBB66-7470-440B-9C7A-AEB74712FF2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39708916-A858-4E6B-921D-ECE42845C46C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39708916-A858-4E6B-921D-ECE42845C46C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39708916-A858-4E6B-921D-ECE42845C46C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39708916-A858-4E6B-921D-ECE42845C46C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5A0A2F3D-8462-4782-9668-1CA2DC08630C} = {C4C3D651-D3CA-40BA-9DA3-488E55CE589C}
+		{FD2FBB66-7470-440B-9C7A-AEB74712FF2F} = {C4C3D651-D3CA-40BA-9DA3-488E55CE589C}
+		{39708916-A858-4E6B-921D-ECE42845C46C} = {2CC5A95A-DE78-4C30-9525-B33000D6A7AB}
+	EndGlobalSection
+EndGlobal
